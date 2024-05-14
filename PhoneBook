@@ -1,0 +1,54 @@
+import java.util.*;
+
+// Основной класс программы
+public class TelefonnayaKniga {
+    public static void main(String[] args) {
+        // Создаем экземпляр телефонной книги
+        TelefonnayaKniga kniga = new TelefonnayaKniga();
+
+        // Добавляем несколько записей
+        kniga.dobavitTelefon("Ivan", "12345");
+        kniga.dobavitTelefon("Ivan", "67890");
+        kniga.dobavitTelefon("Anna", "54321");
+        kniga.dobavitTelefon("Anna", "67890");
+        kniga.dobavitTelefon("Sergey", "11111");
+
+        // Выводим телефонную книгу
+        kniga.vivestiKnigu();
+    }
+
+    // HashMap для хранения данных телефонной книги
+    private Map<String, Set<String>> telefonnayaKniga;
+
+    // Конструктор для инициализации телефонной книги
+    public TelefonnayaKniga() {
+        telefonnayaKniga = new HashMap<>();
+    }
+
+    // Метод для добавления телефона
+    public void dobavitTelefon(String imya, String telefon) {
+        // Если имя уже существует в телефонной книге, добавляем телефон в существующий Set
+        if (telefonnayaKniga.containsKey(imya)) {
+            telefonnayaKniga.get(imya).add(telefon);
+        } else {
+            // Если имя не существует, создаем новый Set и добавляем его в HashMap
+            Set<String> telefoni = new HashSet<>();
+            telefoni.add(telefon);
+            telefonnayaKniga.put(imya, telefoni);
+        }
+    }
+
+    // Метод для вывода телефонной книги, отсортированной по убыванию числа телефонов
+    public void vivestiKnigu() {
+        // Создаем список из записей HashMap для сортировки
+        List<Map.Entry<String, Set<String>>> zapis = new ArrayList<>(telefonnayaKniga.entrySet());
+
+        // Сортируем список по размеру Set (числу телефонов) в порядке убывания
+        zapis.sort((entry1, entry2) -> entry2.getValue().size() - entry1.getValue().size());
+
+        // Выводим отсортированные записи
+        for (Map.Entry<String, Set<String>> entry : zapis) {
+            System.out.println("Imya: " + entry.getKey() + ", Telefoni: " + entry.getValue());
+        }
+    }
+}
