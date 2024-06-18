@@ -1,6 +1,32 @@
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
+
+class Student {
+    private String id;
+    private String name;
+
+    public Student(String id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return "Студент{id='" + id + "', имя='" + name + "'}";
+    }
+}
 
 class Teacher {
     private String name;
@@ -29,7 +55,64 @@ class Teacher {
 
     @Override
     public String toString() {
-        return "Teacher{name='" + name + "', subject='" + subject + "'}";
+        return "Преподаватель{имя='" + name + "', предмет='" + subject + "'}";
+    }
+}
+
+class StudyGroup {
+    private Teacher teacher;
+    private List<Student> students;
+
+    public StudyGroup(Teacher teacher, List<Student> students) {
+        this.teacher = teacher;
+        this.students = students;
+    }
+
+    public Teacher getTeacher() {
+        return teacher;
+    }
+
+    public List<Student> getStudents() {
+        return students;
+    }
+
+    @Override
+    public String toString() {
+        return "УчебнаяГруппа{преподаватель=" + teacher + ", студенты=" + students + "}";
+    }
+}
+
+class Stream implements Iterable<StudyGroup> {
+    private List<StudyGroup> groups;
+
+    public Stream() {
+        this.groups = new ArrayList<>();
+    }
+
+    public void addGroup(StudyGroup group) {
+        groups.add(group);
+    }
+
+    public int getGroupCount() {
+        return groups.size();
+    }
+
+    @Override
+    public Iterator<StudyGroup> iterator() {
+        return groups.iterator();
+    }
+}
+
+class StreamComparator implements Comparator<Stream> {
+    @Override
+    public int compare(Stream s1, Stream s2) {
+        return Integer.compare(s1.getGroupCount(), s2.getGroupCount());
+    }
+}
+
+class StreamService {
+    public void sortStreams(List<Stream> streams) {
+        Collections.sort(streams, new StreamComparator());
     }
 }
 
@@ -78,13 +161,23 @@ class TeacherView {
     }
 }
 
-class TeacherController {
+class StudyGroupService {
+    public StudyGroup createStudyGroup(Teacher teacher, List<Student> students) {
+        return new StudyGroup(teacher, students);
+    }
+}
+
+class Controller {
     private TeacherService teacherService;
     private TeacherView teacherView;
+    private StreamService streamService;
+    private StudyGroupService studyGroupService;
 
-    public TeacherController() {
+    public Controller() {
         this.teacherService = new TeacherService();
         this.teacherView = new TeacherView();
+        this.streamService = new StreamService();
+        this.studyGroupService = new StudyGroupService();
     }
 
     public void addTeacher(String name, String subject) {
@@ -101,44 +194,90 @@ class TeacherController {
         teacherView.displayAllTeachers(teachers);
     }
 
+    public void createStudyGroup(String teacherName, List<String> studentIds, List<Student> allStudents) {
+        Teacher teacher = teacherService.getTeacherByName(teacherName);
+        List<Student> students = new ArrayList<>();
+        for (String id : studentIds) {
+            for (Student student : allStudents) {
+                if (student.getId().equals(id)) {
+                    students.add(student);
+                    break;
+                }
+            }
+        }
+        StudyGroup studyGroup = studyGroupService.createStudyGroup(teacher, students);
+        System.out.println("Создана УчебнаяГруппа: " + studyGroup);
+    }
+
+    public void sortStreams(List<Stream> streams) {
+        streamService.sortStreams(streams);
+    }
+
     public static void main(String[] args) {
-        TeacherController controller = new TeacherController();
+        Controller controller = new Controller();
         Scanner scanner = new Scanner(System.in);
         String command;
-        
+
+        List<Student> allStudents = new ArrayList<>();
+        allStudents.add(new Student("1", "Студент А"));
+        allStudents.add(new Student("2", "Студент Б"));
+        allStudents.add(new Student("3", "Студент В"));
+
         do {
-            System.out.println("Enter command (add, update, list, exit): ");
+            System.out.println("Введите команду (добавить, обновить, список, создатьГруппу, сортироватьПотоки, выход): ");
             command = scanner.nextLine();
-            
+
             switch (command) {
-                case "add":
-                    System.out.println("Enter teacher name: ");
+                case "добавить":
+                    System.out.println("Введите имя преподавателя: ");
                     String name = scanner.nextLine();
-                    System.out.println("Enter teacher subject: ");
+                    System.out.println("Введите предмет преподавателя: ");
                     String subject = scanner.nextLine();
                     controller.addTeacher(name, subject);
                     break;
-                case "update":
-                    System.out.println("Enter current teacher name: ");
+                case "обновить":
+                    System.out.println("Введите текущее имя преподавателя: ");
                     String currentName = scanner.nextLine();
-                    System.out.println("Enter new teacher name: ");
+                    System.out.println("Введите новое имя преподавателя: ");
                     String newName = scanner.nextLine();
-                    System.out.println("Enter new teacher subject: ");
+                    System.out.println("Введите новый предмет преподавателя: ");
                     String newSubject = scanner.nextLine();
                     controller.updateTeacher(currentName, newName, newSubject);
                     break;
-                case "list":
+                case "список":
                     controller.displayAllTeachers();
                     break;
-                case "exit":
-                    System.out.println("Exiting...");
+                case "создатьГруппу":
+                    System.out.println("Введите имя преподавателя: ");
+                    String teacherName = scanner.nextLine();
+                    System.out.println("Введите ID студентов (через запятую): ");
+                    String[] ids = scanner.nextLine().split(",");
+                    List<String> studentIds = new ArrayList<>();
+                    for (String id : ids) {
+                        studentIds.add(id.trim());
+                    }
+                    controller.createStudyGroup(teacherName, studentIds, allStudents);
+                    break;
+                case "сортироватьПотоки":
+                    List<Stream> streams = new ArrayList<>();
+                    Stream stream1 = new Stream();
+                    stream1.addGroup(new StudyGroup(new Teacher("Преподаватель 1", "Математика"), allStudents));
+                    Stream stream2 = new Stream();
+                    stream2.addGroup(new StudyGroup(new Teacher("Преподаватель 2", "Физика"), allStudents));
+                    streams.add(stream1);
+                    streams.add(stream2);
+                    controller.sortStreams(streams);
+                    System.out.println("Потоки отсортированы.");
+                    break;
+                case "выход":
+                    System.out.println("Выход...");
                     break;
                 default:
-                    System.out.println("Invalid command!");
+                    System.out.println("Неверная команда!");
                     break;
             }
-        } while (!command.equals("exit"));
-        
+        } while (!command.equals("выход"));
+
         scanner.close();
     }
 }
