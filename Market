@@ -1,0 +1,111 @@
+// QueueBehaviour.java
+import java.util.Queue;
+
+public interface QueueBehaviour {
+    void takeInQueue(Person person);
+    void releaseFromQueue();
+    Person serveNextPerson();
+}
+
+// MarketBehaviour.java
+public interface MarketBehaviour {
+    void acceptOrder(Person person);
+    void handOrder(Person person);
+    void update();
+}
+
+// Person.java
+public class Person {
+    private String name;
+    
+    public Person(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return "Person{name='" + name + '\'' + '}';
+    }
+}
+
+// Market.java
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class Market implements QueueBehaviour, MarketBehaviour {
+    private Queue<Person> queue;
+
+    public Market() {
+        this.queue = new LinkedList<>();
+    }
+
+    @Override
+    public void takeInQueue(Person person) {
+        queue.add(person);
+        System.out.println(person + " added to the queue.");
+    }
+
+    @Override
+    public void releaseFromQueue() {
+        Person person = queue.poll();
+        if (person != null) {
+            System.out.println(person + " removed from the queue.");
+        } else {
+            System.out.println("No one in the queue to release.");
+        }
+    }
+
+    @Override
+    public Person serveNextPerson() {
+        Person person = queue.peek();
+        if (person != null) {
+            System.out.println("Serving " + person);
+        } else {
+            System.out.println("No one in the queue to serve.");
+        }
+        return person;
+    }
+
+    @Override
+    public void acceptOrder(Person person) {
+        System.out.println("Order accepted from " + person);
+    }
+
+    @Override
+    public void handOrder(Person person) {
+        System.out.println("Order handed to " + person);
+    }
+
+    @Override
+    public void update() {
+        if (!queue.isEmpty()) {
+            Person person = serveNextPerson();
+            acceptOrder(person);
+            handOrder(person);
+            releaseFromQueue();
+        } else {
+            System.out.println("No updates. Queue is empty.");
+        }
+    }
+
+    public static void main(String[] args) {
+        Market market = new Market();
+
+        Person person1 = new Person("Alice");
+        Person person2 = new Person("Bob");
+        Person person3 = new Person("Charlie");
+
+        market.takeInQueue(person1);
+        market.takeInQueue(person2);
+        market.takeInQueue(person3);
+
+        market.update();
+        market.update();
+        market.update();
+        market.update();
+    }
+}
