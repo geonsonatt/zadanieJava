@@ -1,78 +1,144 @@
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Scanner;
 
-class StudyGroup {
-}
+class Teacher {
+    private String name;
+    private String subject;
 
-class Stream implements Iterable<StudyGroup> {
-    private List<StudyGroup> groups;
-
-    public Stream() {
-        this.groups = new ArrayList<>();
+    public Teacher(String name, String subject) {
+        this.name = name;
+        this.subject = subject;
     }
 
-    public void addGroup(StudyGroup group) {
-        groups.add(group);
+    public String getName() {
+        return name;
     }
 
-    public int getGroupCount() {
-        return groups.size();
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
     }
 
     @Override
-    public Iterator<StudyGroup> iterator() {
-        return groups.iterator();
+    public String toString() {
+        return "Teacher{name='" + name + "', subject='" + subject + "'}";
     }
 }
 
-class StreamComparator implements Comparator<Stream> {
-    @Override
-    public int compare(Stream s1, Stream s2) {
-        return Integer.compare(s1.getGroupCount(), s2.getGroupCount());
+class TeacherService {
+    private List<Teacher> teachers;
+
+    public TeacherService() {
+        this.teachers = new ArrayList<>();
+    }
+
+    public void addTeacher(Teacher teacher) {
+        teachers.add(teacher);
+    }
+
+    public List<Teacher> getAllTeachers() {
+        return new ArrayList<>(teachers);
+    }
+
+    public Teacher getTeacherByName(String name) {
+        for (Teacher teacher : teachers) {
+            if (teacher.getName().equalsIgnoreCase(name)) {
+                return teacher;
+            }
+        }
+        return null;
+    }
+
+    public void updateTeacher(String name, String newName, String newSubject) {
+        Teacher teacher = getTeacherByName(name);
+        if (teacher != null) {
+            teacher.setName(newName);
+            teacher.setSubject(newSubject);
+        }
     }
 }
 
-class StreamService {
-    public void sortStreams(List<Stream> streams) {
-        Collections.sort(streams, new StreamComparator());
+class TeacherView {
+    public void displayTeacher(Teacher teacher) {
+        System.out.println(teacher);
+    }
+
+    public void displayAllTeachers(List<Teacher> teachers) {
+        for (Teacher teacher : teachers) {
+            System.out.println(teacher);
+        }
     }
 }
 
-class Controller {
-    private StreamService streamService;
+class TeacherController {
+    private TeacherService teacherService;
+    private TeacherView teacherView;
 
-    public Controller() {
-        this.streamService = new StreamService();
+    public TeacherController() {
+        this.teacherService = new TeacherService();
+        this.teacherView = new TeacherView();
     }
 
-    public void sortStreams(List<Stream> streams) {
-        streamService.sortStreams(streams);
+    public void addTeacher(String name, String subject) {
+        Teacher teacher = new Teacher(name, subject);
+        teacherService.addTeacher(teacher);
+    }
+
+    public void updateTeacher(String name, String newName, String newSubject) {
+        teacherService.updateTeacher(name, newName, newSubject);
+    }
+
+    public void displayAllTeachers() {
+        List<Teacher> teachers = teacherService.getAllTeachers();
+        teacherView.displayAllTeachers(teachers);
     }
 
     public static void main(String[] args) {
-        StudyGroup group1 = new StudyGroup();
-        StudyGroup group2 = new StudyGroup();
-        StudyGroup group3 = new StudyGroup();
-
-        Stream stream1 = new Stream();
-        stream1.addGroup(group1);
-        stream1.addGroup(group2);
-
-        Stream stream2 = new Stream();
-        stream2.addGroup(group3);
-
-        List<Stream> streams = new ArrayList<>();
-        streams.add(stream1);
-        streams.add(stream2);
-
-        Controller controller = new Controller();
-        controller.sortStreams(streams);
-
-        for (Stream stream : streams) {
-            System.out.println("Stream with " + stream.getGroupCount() + " groups");
-        }
+        TeacherController controller = new TeacherController();
+        Scanner scanner = new Scanner(System.in);
+        String command;
+        
+        do {
+            System.out.println("Enter command (add, update, list, exit): ");
+            command = scanner.nextLine();
+            
+            switch (command) {
+                case "add":
+                    System.out.println("Enter teacher name: ");
+                    String name = scanner.nextLine();
+                    System.out.println("Enter teacher subject: ");
+                    String subject = scanner.nextLine();
+                    controller.addTeacher(name, subject);
+                    break;
+                case "update":
+                    System.out.println("Enter current teacher name: ");
+                    String currentName = scanner.nextLine();
+                    System.out.println("Enter new teacher name: ");
+                    String newName = scanner.nextLine();
+                    System.out.println("Enter new teacher subject: ");
+                    String newSubject = scanner.nextLine();
+                    controller.updateTeacher(currentName, newName, newSubject);
+                    break;
+                case "list":
+                    controller.displayAllTeachers();
+                    break;
+                case "exit":
+                    System.out.println("Exiting...");
+                    break;
+                default:
+                    System.out.println("Invalid command!");
+                    break;
+            }
+        } while (!command.equals("exit"));
+        
+        scanner.close();
     }
 }
